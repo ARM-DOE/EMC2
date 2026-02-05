@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>emc2.core.model &mdash; EMC^2  documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=d2d258e8" />
       <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
       <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
@@ -15,8 +15,8 @@
 
   
       <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -110,7 +110,7 @@
 <div class="viewcode-block" id="Model">
 <a class="viewcode-back" href="../../../API/generated/emc2.core.Model.html#emc2.core.Model">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This class stores the model specific parameters for the radar simulator.</span>
 
 <span class="sd">    Attributes</span>
@@ -127,9 +127,11 @@
 <span class="sd">       A dictionary whose keys are the names of the model&#39;s hydrometeor classes and</span>
 <span class="sd">       whose values are the lidar_ratio of said hydrometeors.</span>
 <span class="sd">    vel_param_a: dict</span>
-<span class="sd">       A dictionary whose keys are the names of the model&#39;s hydrometeor classes and</span>
-<span class="sd">       whose values are the :math:`a` parameters to the equation :math:`V = aD^b` used to</span>
-<span class="sd">       calculate terminal velocity corresponding to each hydrometeor.</span>
+<span class="sd">        A dictionary whose keys are the names of the model&#39;s hydrometeor classes.</span>
+<span class="sd">        Values can be either:</span>
+<span class="sd">        - A scalar (float): the :math:`a` parameter to :math:`V = aD^b` for all sizes</span>
+<span class="sd">        - A dict: maps particle size ranges (keys: diameter in meters) to :math:`a` coefficients.</span>
+<span class="sd">            For a diameter D, the coefficient for the largest size edge ≤ D is used.</span>
 <span class="sd">    vel_param_b: dict</span>
 <span class="sd">       A dictionary whose keys are the names of the model&#39;s hydrometeor classes and</span>
 <span class="sd">       whose values are the :math:`b` parameters to the equation :math:`V = aD^b` used to</span>
@@ -263,8 +265,96 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_add_vel_units</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">my_keys</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vel_param_a</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">vel_param_a</span><span class="p">[</span><span class="n">my_keys</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vel_param_a</span><span class="p">[</span><span class="n">my_keys</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span>
-                <span class="n">ureg</span><span class="o">.</span><span class="n">meter</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">vel_param_b</span><span class="p">[</span><span class="n">my_keys</span><span class="p">]</span><span class="o">.</span><span class="n">magnitude</span><span class="p">)</span> <span class="o">/</span> <span class="n">ureg</span><span class="o">.</span><span class="n">second</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vel_param_a</span><span class="p">[</span><span class="n">my_keys</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="c1"># Piecewise case: both a and b should be dicts with matching keys</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vel_param_b</span><span class="p">[</span><span class="n">my_keys</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;vel_param_b[&#39;</span><span class="si">{</span><span class="n">my_keys</span><span class="si">}</span><span class="s2">&#39;] must be dict if vel_param_a[&#39;</span><span class="si">{</span><span class="n">my_keys</span><span class="si">}</span><span class="s2">&#39;] is dict&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vel_param_a</span><span class="p">[</span><span class="n">my_keys</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">!=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vel_param_b</span><span class="p">[</span><span class="n">my_keys</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;vel_param_a and vel_param_b have mismatched size bins for &#39;</span><span class="si">{</span><span class="n">my_keys</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+                
+                <span class="c1"># For piecewise: don&#39;t add units here. Units are handled in _get_terminal_velocity_params()</span>
+                <span class="c1"># where we perform the unit conversion from (μm, cm/s) to SI (m, m/s).</span>
+                <span class="c1"># Simply validate that b values have units already.</span>
+                <span class="k">for</span> <span class="n">size_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vel_param_b</span><span class="p">[</span><span class="n">my_keys</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vel_param_b</span><span class="p">[</span><span class="n">my_keys</span><span class="p">][</span><span class="n">size_key</span><span class="p">],</span> <span class="s1">&#39;magnitude&#39;</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;vel_param_b[&#39;</span><span class="si">{</span><span class="n">my_keys</span><span class="si">}</span><span class="s2">&#39;][</span><span class="si">{</span><span class="n">size_key</span><span class="si">}</span><span class="s2">] must have units (e.g., dimensionless)&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Scalar case: both should be scalars</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vel_param_b</span><span class="p">[</span><span class="n">my_keys</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;vel_param_b[&#39;</span><span class="si">{</span><span class="n">my_keys</span><span class="si">}</span><span class="s2">&#39;] must be scalar if vel_param_a[&#39;</span><span class="si">{</span><span class="n">my_keys</span><span class="si">}</span><span class="s2">&#39;] is scalar&quot;</span><span class="p">)</span>
+                
+                <span class="bp">self</span><span class="o">.</span><span class="n">vel_param_a</span><span class="p">[</span><span class="n">my_keys</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vel_param_a</span><span class="p">[</span><span class="n">my_keys</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span>
+                    <span class="n">ureg</span><span class="o">.</span><span class="n">meter</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">vel_param_b</span><span class="p">[</span><span class="n">my_keys</span><span class="p">]</span><span class="o">.</span><span class="n">magnitude</span><span class="p">)</span> <span class="o">/</span> <span class="n">ureg</span><span class="o">.</span><span class="n">second</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_terminal_velocity_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hyd_type</span><span class="p">,</span> <span class="n">p_diam_array</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get terminal velocity parameters for a given hydrometeor class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        hyd_type: str</span>
+<span class="sd">            Hydrometeor class name.</span>
+<span class="sd">        p_diam_array: ndarray or None</span>
+<span class="sd">            Array of particle diameters in meters for piecewise coefficients.</span>
+<span class="sd">            If None, then scalar coefficients are returned.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of (vel_a, vel_b, is_piecewise)</span>
+<span class="sd">            - vel_a: coefficient in units of m^(1-b) / s</span>
+<span class="sd">            - vel_b: exponent (dimensionless)</span>
+<span class="sd">            - is_piecewise: bool indicating if piecewise coefficients were used</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        For piecewise coefficients: All unit conversions are handled internally.</span>
+<span class="sd">        Piecewise coefficients are calibrated for D in μm with output in cm/s.</span>
+<span class="sd">        This method converts internally so output is always in SI units (m, m/s).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">param_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vel_param_a</span><span class="p">[</span><span class="n">hyd_type</span><span class="p">]</span>
+        <span class="n">param_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vel_param_b</span><span class="p">[</span><span class="n">hyd_type</span><span class="p">]</span>
+        
+        <span class="n">a_is_dict</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param_a</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+        <span class="n">b_is_dict</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param_b</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">a_is_dict</span> <span class="o">!=</span> <span class="n">b_is_dict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">a_is_dict</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">param_a</span><span class="p">,</span> <span class="n">param_b</span><span class="p">,</span> <span class="kc">False</span>  <span class="c1"># Scalar case, no conversion needed</span>
+        
+        <span class="c1"># Piecewise case: do conversions internally</span>
+        <span class="k">if</span> <span class="n">p_diam_array</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        
+        <span class="n">size_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">param_a</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="n">bin_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">size_edges</span><span class="p">,</span> <span class="n">p_diam_array</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">bin_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bin_indices</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">size_edges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        
+        <span class="c1"># Extract raw magnitudes (these are in non-SI calibration: μm input, cm/s output)</span>
+        <span class="n">vel_a_magnitudes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">param_a</span><span class="p">[</span><span class="n">size_edges</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">bin_indices</span><span class="p">])</span>
+        <span class="n">vel_b_magnitudes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">param_b</span><span class="p">[</span><span class="n">size_edges</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span><span class="o">.</span><span class="n">magnitude</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">bin_indices</span><span class="p">])</span>
+        
+        <span class="c1"># **Convert from (μm, cm/s) calibration to SI (m, m/s)**</span>
+        <span class="c1"># Original formula: V = a*D^b with D in μm, output in cm/s</span>
+        <span class="c1"># Desired formula: V_SI = a_SI*D_SI^b with D_SI in m, output in m/s</span>
+        <span class="c1"># Derivation:</span>
+        <span class="c1">#   V_m/s = (V_cm/s) * 0.01 = (a * D_μm^b) * 0.01</span>
+        <span class="c1">#   where D_μm = D_m * 1e6</span>
+        <span class="c1">#   so: V_m/s = a * (D_m * 1e6)^b * 0.01 = a * 0.01 * (1e6)^b * D_m^b</span>
+        <span class="c1"># Therefore: a_SI = a * 1e-2 * (1e6)^b, with units m^(1-b)/s</span>
+        
+        <span class="n">conversion_factor</span> <span class="o">=</span> <span class="mf">1e-2</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1e6</span><span class="p">)</span> <span class="o">**</span> <span class="n">vel_b_magnitudes</span>
+        <span class="n">vel_a_si</span> <span class="o">=</span> <span class="n">vel_a_magnitudes</span> <span class="o">*</span> <span class="n">conversion_factor</span>
+        
+        <span class="c1"># For piecewise: return plain numpy arrays since b values vary per element</span>
+        <span class="c1"># The calling code will use these with the formula V = vel_a_si * D_SI^vel_b_magnitudes</span>
+        <span class="c1"># which automatically gives m/s when D is in meters</span>
+        <span class="k">return</span> <span class="n">vel_a_si</span><span class="p">,</span> <span class="n">vel_b_magnitudes</span><span class="p">,</span> <span class="kc">True</span>  <span class="c1"># True = piecewise was used</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_prepare_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -875,6 +965,19 @@
                             <span class="s1">&#39;ci&#39;</span><span class="p">:</span> <span class="mf">1.</span> <span class="o">*</span> <span class="n">ureg</span><span class="o">.</span><span class="n">dimensionless</span><span class="p">,</span>
                             <span class="s1">&#39;pl&#39;</span><span class="p">:</span> <span class="mf">0.8</span> <span class="o">*</span> <span class="n">ureg</span><span class="o">.</span><span class="n">dimensionless</span><span class="p">,</span>
                             <span class="s1">&#39;pi&#39;</span><span class="p">:</span> <span class="mf">0.41</span> <span class="o">*</span> <span class="n">ureg</span><span class="o">.</span><span class="n">dimensionless</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">mcphys_scheme</span> <span class="o">==</span> <span class="s2">&quot;P3&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vel_param_a</span><span class="p">[</span><span class="s1">&#39;pl&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="mf">0.0</span><span class="p">:</span> <span class="mf">4.5795e5</span><span class="p">,</span>
+                <span class="mf">1.3443e-4</span><span class="p">:</span> <span class="mf">4.962e3</span><span class="p">,</span>
+                <span class="mf">1.51164e-3</span><span class="p">:</span> <span class="mf">1.732e3</span><span class="p">,</span>
+                <span class="mf">3.47784e-3</span><span class="p">:</span> <span class="mf">9.17e2</span>
+            <span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vel_param_b</span><span class="p">[</span><span class="s1">&#39;pl&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="mf">0.0</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">ureg</span><span class="o">.</span><span class="n">dimensionless</span><span class="p">,</span>
+                <span class="mf">1.3443e-4</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">ureg</span><span class="o">.</span><span class="n">dimensionless</span><span class="p">,</span>
+                <span class="mf">1.51164e-3</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">6</span><span class="p">)</span> <span class="o">*</span> <span class="n">ureg</span><span class="o">.</span><span class="n">dimensionless</span><span class="p">,</span>
+                <span class="mf">3.47784e-3</span><span class="p">:</span> <span class="mf">0.0</span> <span class="o">*</span> <span class="n">ureg</span><span class="o">.</span><span class="n">dimensionless</span>
+            <span class="p">}</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_add_vel_units</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">q_field</span> <span class="o">=</span> <span class="s2">&quot;Q&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">N_field</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;cl&#39;</span><span class="p">:</span> <span class="s1">&#39;NUMLIQ&#39;</span><span class="p">,</span> <span class="s1">&#39;ci&#39;</span><span class="p">:</span> <span class="s1">&#39;NUMICE&#39;</span><span class="p">,</span> <span class="s1">&#39;pl&#39;</span><span class="p">:</span> <span class="s1">&#39;NUMRAI&#39;</span><span class="p">,</span> <span class="s1">&#39;pi&#39;</span><span class="p">:</span> <span class="s1">&#39;NUMSNO&#39;</span><span class="p">}</span>
