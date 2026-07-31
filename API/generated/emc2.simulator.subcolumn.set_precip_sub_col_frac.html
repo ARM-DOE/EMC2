@@ -145,12 +145,13 @@ EMC2 automatically detect the number of subcolumns.</p>
 using the microphysics scheme (note that these schemes do not necessarily
 use exactly the same cloud fraction logic).</p>
 </dd>
-<dt><strong>parallel: bool</strong></dt><dd><p>If True, use parallelism in calculating lidar parameters.</p>
+<dt><strong>parallel: bool or str</strong></dt><dd><p>If True or ‘dask’, use Dask bag for parallelism (supports multi-node HPC
+via a distributed Dask scheduler). If ‘processes’, use ProcessPoolExecutor
+(faster on single-node workstations). If False, run serially.</p>
 </dd>
-<dt><strong>chunk: int or None</strong></dt><dd><p>The number of entries to process in one parallel loop. None will send all of
-the entries to the Dask worker queue at once. Sometimes, Dask will freeze if
-too many tasks are sent at once due to memory issues, so adjusting this number
-might be needed if that happens.</p>
+<dt><strong>chunk: int or None</strong></dt><dd><p>When parallel=’processes’, the chunksize hint for ProcessPoolExecutor.map
+(how many time steps are batched per worker). None auto-sizes to
+max(1, t_dim // cpu_count()). Ignored when parallel=True or ‘dask’.</p>
 </dd>
 <dt><strong>ice_hyd_type: str</strong></dt><dd><p>The ice hydrometeor type to include in the subcolumn distribution for precipitation</p>
 </dd>
