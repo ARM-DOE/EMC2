@@ -178,7 +178,7 @@
 <div class="viewcode-block" id="set_stratiform_sub_col_frac">
 <a class="viewcode-back" href="../../../API/generated/emc2.simulator.subcolumn.set_stratiform_sub_col_frac.html#emc2.simulator.subcolumn.set_stratiform_sub_col_frac">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">set_stratiform_sub_col_frac</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">N_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_rad_logic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                <span class="n">q_trunc_thresh</span><span class="o">=</span><span class="mf">1e-18</span><span class="p">):</span>
+                                <span class="n">q_trunc_thresh</span><span class="o">=</span><span class="mf">1e-18</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sets the hydrometeor fraction due to stratiform cloud particles in each subcolumn.</span>
 
@@ -206,6 +206,14 @@
 <span class="sd">        max(1, t_dim // cpu_count()). Ignored when parallel=True or &#39;dask&#39;.</span>
 <span class="sd">    q_trunc_thresh: float</span>
 <span class="sd">        truncation value for q. Smaller values will be treated as 0.</span>
+<span class="sd">    seed: int or None</span>
+<span class="sd">        Random seed for reproducibility. None (default) gives non-reproducible results</span>
+<span class="sd">        with fully independent draws — best for production science runs. With an integer</span>
+<span class="sd">        seed and parallel=False, a single global seed is set before the timestep loop</span>
+<span class="sd">        (serial-only, statistically independent timesteps). With an integer seed</span>
+<span class="sd">        and parallel=True/&#39;processes&#39;, each worker seeds with seed+tt</span>
+<span class="sd">        (parallel-safe, with a weak cross-timestep correlation). See the seeding note</span>
+<span class="sd">        above _randperm for full details.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -277,7 +285,8 @@
             <span class="n">cld_2_assigns</span><span class="o">=</span><span class="n">cld_2_assigns</span><span class="p">,</span> <span class="n">I_min</span><span class="o">=</span><span class="n">I_min</span><span class="p">,</span> <span class="n">I_max</span><span class="o">=</span><span class="n">I_max</span><span class="p">,</span>
             <span class="n">conv_profs</span><span class="o">=</span><span class="n">conv_profs</span><span class="p">,</span> <span class="n">full_overcast_cl_ci</span><span class="o">=</span><span class="n">full_overcast_cl_ci</span><span class="p">,</span>
             <span class="n">data_frac1</span><span class="o">=</span><span class="n">data_frac1</span><span class="p">,</span> <span class="n">data_frac2</span><span class="o">=</span><span class="n">data_frac2</span><span class="p">,</span> <span class="n">N_columns</span><span class="o">=</span><span class="n">N_columns</span><span class="p">,</span>
-            <span class="n">overlapping_cloud</span><span class="o">=</span><span class="n">overlapping_cloud</span><span class="p">)</span>
+            <span class="n">overlapping_cloud</span><span class="o">=</span><span class="n">overlapping_cloud</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span> <span class="k">if</span> <span class="n">parallel</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="n">t_dim</span> <span class="o">=</span> <span class="n">data_frac1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">parallel</span> <span class="o">==</span> <span class="s1">&#39;processes&#39;</span><span class="p">:</span>
@@ -291,6 +300,8 @@
             <span class="k">with</span> <span class="n">ProgressBar</span><span class="p">():</span>
                 <span class="n">my_tuple</span> <span class="o">=</span> <span class="n">tt_bag</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_allocate_strat_sub_cols</span><span class="p">)</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
             <span class="n">my_tuple</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">_allocate_strat_sub_cols</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">t_dim</span><span class="p">)))</span>
 
         <span class="n">full_overcast_cl_ci</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">my_tuple</span><span class="p">])</span>
@@ -322,8 +333,8 @@
 <div class="viewcode-block" id="set_precip_sub_col_frac">
 <a class="viewcode-back" href="../../../API/generated/emc2.simulator.subcolumn.set_precip_sub_col_frac.html#emc2.simulator.subcolumn.set_precip_sub_col_frac">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">set_precip_sub_col_frac</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">is_conv</span><span class="p">,</span> <span class="n">N_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_rad_logic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                            <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
-                            <span class="n">precip_types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pl&quot;</span><span class="p">,</span> <span class="s2">&quot;pi&quot;</span><span class="p">],</span> <span class="n">q_trunc_thresh</span><span class="o">=</span><span class="mf">1e-18</span><span class="p">):</span>
+                            <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                            <span class="n">precip_types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pl&quot;</span><span class="p">,</span> <span class="s2">&quot;pi&quot;</span><span class="p">],</span> <span class="n">q_trunc_thresh</span><span class="o">=</span><span class="mf">1e-18</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sets the hydrometeor fraction due to precipitation in each subcolumn. This</span>
 <span class="sd">    module works for both stratiform and convective precipitation.</span>
@@ -355,6 +366,14 @@
 <span class="sd">        The ice hydrometeor type to include in the subcolumn distribution for precipitation</span>
 <span class="sd">    q_trunc_thresh: float</span>
 <span class="sd">        truncation value for q. Smaller values will be treated as 0.</span>
+<span class="sd">    seed: int or None</span>
+<span class="sd">        Random seed for reproducibility. None (default) gives non-reproducible results</span>
+<span class="sd">        with fully independent draws — best for production science runs. With an integer</span>
+<span class="sd">        seed and parallel=False, a single global seed is set before the timestep loop</span>
+<span class="sd">        (serial-only, statistically independent timesteps). With an integer seed</span>
+<span class="sd">        and parallel=True/&#39;processes&#39;, each worker seeds with seed+tt</span>
+<span class="sd">        (parallel-safe, with a weak cross-timestep correlation). See the seeding note</span>
+<span class="sd">        above _randperm for full details.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -463,7 +482,8 @@
             <span class="n">_allocate_precip_sub_col</span><span class="p">,</span>
             <span class="n">cond</span><span class="o">=</span><span class="n">cond</span><span class="p">,</span> <span class="n">N_columns</span><span class="o">=</span><span class="n">N_columns</span><span class="p">,</span> <span class="n">data_frac</span><span class="o">=</span><span class="n">data_frac</span><span class="p">,</span> <span class="n">PF_val</span><span class="o">=</span><span class="n">PF_val</span><span class="p">,</span>
             <span class="n">precip_exist</span><span class="o">=</span><span class="n">precip_exist</span><span class="p">,</span> <span class="n">full_overcast_pl_pi</span><span class="o">=</span><span class="n">full_overcast_pl_pi</span><span class="p">,</span>
-            <span class="n">overlapping_cloud</span><span class="o">=</span><span class="n">overlapping_cloud</span><span class="p">)</span>
+            <span class="n">overlapping_cloud</span><span class="o">=</span><span class="n">overlapping_cloud</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span> <span class="k">if</span> <span class="n">parallel</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="n">t_dim</span> <span class="o">=</span> <span class="n">data_frac</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">parallel</span> <span class="o">==</span> <span class="s1">&#39;processes&#39;</span><span class="p">:</span>
@@ -477,6 +497,8 @@
             <span class="k">with</span> <span class="n">ProgressBar</span><span class="p">():</span>
                 <span class="n">my_tuple</span> <span class="o">=</span> <span class="n">tt_bag</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_allocate_precip_sub_cols</span><span class="p">)</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
             <span class="n">my_tuple</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">_allocate_precip_sub_cols</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">t_dim</span><span class="p">)))</span>
 
         <span class="n">full_overcast_pl_pi</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">my_tuple</span><span class="p">])</span>
@@ -507,7 +529,7 @@
 <div class="viewcode-block" id="set_q_n">
 <a class="viewcode-back" href="../../../API/generated/emc2.simulator.subcolumn.set_q_n.html#emc2.simulator.subcolumn.set_q_n">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">set_q_n</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">hyd_type</span><span class="p">,</span> <span class="n">is_conv</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">qc_flag</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inv_rel_var</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_rad_logic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q_trunc_thresh</span><span class="o">=</span><span class="mf">1e-18</span><span class="p">):</span>
+            <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q_trunc_thresh</span><span class="o">=</span><span class="mf">1e-18</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    This function distributes the mixing ratio and number concentration into the subcolumns.</span>
@@ -545,6 +567,14 @@
 <span class="sd">        max(1, t_dim // cpu_count()). Ignored when parallel=True or &#39;dask&#39;.</span>
 <span class="sd">    q_trunc_thresh: float</span>
 <span class="sd">        truncation value for q. Smaller values will be treated as 0.</span>
+<span class="sd">    seed: int or None</span>
+<span class="sd">        Random seed for reproducibility. None (default) gives non-reproducible results</span>
+<span class="sd">        with fully independent draws — best for production science runs. With an integer</span>
+<span class="sd">        seed and parallel=False, a single global seed is set before the timestep loop</span>
+<span class="sd">        (serial-only, statistically independent timesteps). With an integer seed</span>
+<span class="sd">        and parallel=True/&#39;processes&#39;, each worker seeds with seed+tt</span>
+<span class="sd">        (parallel-safe, with a weak cross-timestep correlation). See the seeding note</span>
+<span class="sd">        above _randperm for full details.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -626,7 +656,8 @@
             <span class="n">_distribute_cl_q_n_sub_cols</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
                 <span class="n">_distribute_cl_q_n</span><span class="p">,</span>
                 <span class="n">sub_data_frac</span><span class="o">=</span><span class="n">sub_data_frac</span><span class="p">,</span> <span class="n">inv_rel_var</span><span class="o">=</span><span class="n">inv_rel_var</span><span class="p">,</span> <span class="n">N_columns</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">num_subcolumns</span><span class="p">,</span>
-                <span class="n">tot_hyd_in_sub</span><span class="o">=</span><span class="n">tot_hyd_in_sub</span><span class="p">,</span> <span class="n">q_ic_mean</span><span class="o">=</span><span class="n">q_ic_mean</span><span class="p">)</span>
+                <span class="n">tot_hyd_in_sub</span><span class="o">=</span><span class="n">tot_hyd_in_sub</span><span class="p">,</span> <span class="n">q_ic_mean</span><span class="o">=</span><span class="n">q_ic_mean</span><span class="p">,</span>
+                <span class="n">seed</span><span class="o">=</span><span class="n">seed</span> <span class="k">if</span> <span class="n">parallel</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 
             <span class="n">t_dim</span> <span class="o">=</span> <span class="n">data_frac</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">parallel</span> <span class="o">==</span> <span class="s1">&#39;processes&#39;</span><span class="p">:</span>
@@ -640,6 +671,8 @@
                 <span class="k">with</span> <span class="n">ProgressBar</span><span class="p">():</span>
                     <span class="n">my_tuple</span> <span class="o">=</span> <span class="n">tt_bag</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_distribute_cl_q_n_sub_cols</span><span class="p">)</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
                 <span class="n">my_tuple</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">_distribute_cl_q_n_sub_cols</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">t_dim</span><span class="p">)))</span>
 
             <span class="n">q_profs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">my_tuple</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -666,6 +699,33 @@
 
 
 
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># RANDOM SEEDING — two modes, both exposed via the `seed` parameter in the</span>
+<span class="c1"># public functions (default None = non-reproducible, fully independent draws):</span>
+<span class="c1">#</span>
+<span class="c1"># seed=None  No seeding; each run produces different results.  Best for</span>
+<span class="c1">#            production science runs where statistical independence across</span>
+<span class="c1">#            timesteps matters.</span>
+<span class="c1">#</span>
+<span class="c1"># seed=int, parallel=False  (global seed, serial-only)</span>
+<span class="c1">#            np.random.seed(seed) is set once before the timestep loop,</span>
+<span class="c1">#            giving a single contiguous RNG stream.  Consecutive timesteps</span>
+<span class="c1">#            are statistically independent.  Recommended for testing and</span>
+<span class="c1">#            bit-for-bit reproducibility checks in serial mode.</span>
+<span class="c1">#            NOT reproducible with parallel=True/&#39;processes&#39; because</span>
+<span class="c1">#            Dask threads and subprocesses race on the global RNG state.</span>
+<span class="c1">#</span>
+<span class="c1"># seed=int, parallel=True/&#39;processes&#39;  (per-timestep seed)</span>
+<span class="c1">#            np.random.seed(seed + tt) is called inside each worker so</span>
+<span class="c1">#            every timestep always draws from the same RNG state regardless</span>
+<span class="c1">#            of execution order.  Fully reproducible under any parallelism</span>
+<span class="c1">#            mode; suitable for parallel testing and reproducibility checks.</span>
+<span class="c1">#            Trade-off: the RNG restarts each timestep, introducing a weak</span>
+<span class="c1">#            structured correlation across timesteps</span>
+<span class="c1">#            (worth noting for ensemble studies).</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_randperm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -679,7 +739,10 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_allocate_strat_sub_col</span><span class="p">(</span><span class="n">tt</span><span class="p">,</span> <span class="n">cld_2_assigns</span><span class="p">,</span> <span class="n">I_min</span><span class="p">,</span> <span class="n">I_max</span><span class="p">,</span> <span class="n">conv_profs</span><span class="p">,</span>
-                            <span class="n">full_overcast_cl_ci</span><span class="p">,</span> <span class="n">data_frac1</span><span class="p">,</span> <span class="n">data_frac2</span><span class="p">,</span> <span class="n">N_columns</span><span class="p">,</span> <span class="n">overlapping_cloud</span><span class="p">):</span>
+                            <span class="n">full_overcast_cl_ci</span><span class="p">,</span> <span class="n">data_frac1</span><span class="p">,</span> <span class="n">data_frac2</span><span class="p">,</span> <span class="n">N_columns</span><span class="p">,</span> <span class="n">overlapping_cloud</span><span class="p">,</span>
+                            <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span> <span class="o">+</span> <span class="n">tt</span><span class="p">)</span>
 
     <span class="n">strat_profs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">N_columns</span><span class="p">,</span> <span class="n">data_frac1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
 
@@ -771,7 +834,9 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_allocate_precip_sub_col</span><span class="p">(</span><span class="n">tt</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">N_columns</span><span class="p">,</span> <span class="n">data_frac</span><span class="p">,</span> <span class="n">PF_val</span><span class="p">,</span>
-                             <span class="n">precip_exist</span><span class="p">,</span> <span class="n">full_overcast_pl_pi</span><span class="p">,</span> <span class="n">overlapping_cloud</span><span class="p">):</span>
+                             <span class="n">precip_exist</span><span class="p">,</span> <span class="n">full_overcast_pl_pi</span><span class="p">,</span> <span class="n">overlapping_cloud</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span> <span class="o">+</span> <span class="n">tt</span><span class="p">)</span>
     <span class="n">p_strat_profs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
         <span class="p">(</span><span class="n">N_columns</span><span class="p">,</span> <span class="n">data_frac</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_frac</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
 
@@ -837,7 +902,11 @@
     <span class="k">return</span> <span class="n">full_overcast_pl_pi</span><span class="p">,</span> <span class="n">p_strat_profs</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_distribute_cl_q_n</span><span class="p">(</span><span class="n">tt</span><span class="p">,</span> <span class="n">sub_data_frac</span><span class="p">,</span> <span class="n">inv_rel_var</span><span class="p">,</span> <span class="n">N_columns</span><span class="p">,</span> <span class="n">tot_hyd_in_sub</span><span class="p">,</span> <span class="n">q_ic_mean</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_distribute_cl_q_n</span><span class="p">(</span><span class="n">tt</span><span class="p">,</span> <span class="n">sub_data_frac</span><span class="p">,</span> <span class="n">inv_rel_var</span><span class="p">,</span> <span class="n">N_columns</span><span class="p">,</span> <span class="n">tot_hyd_in_sub</span><span class="p">,</span> <span class="n">q_ic_mean</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Random draws here: np.random.permutation (via _randperm) and np.random.gamma.</span>
+    <span class="c1"># See the seeding note above _randperm for reproducibility options.</span>
+    <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span> <span class="o">+</span> <span class="n">tt</span><span class="p">)</span>
     <span class="n">q_profs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N_columns</span><span class="p">,</span> <span class="n">q_ic_mean</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">q_ic_mean</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
         <span class="n">hyd_in_sub_loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sub_data_frac</span><span class="p">[:,</span> <span class="n">tt</span><span class="p">,</span> <span class="n">j</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>

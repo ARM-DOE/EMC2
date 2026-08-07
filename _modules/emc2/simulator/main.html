@@ -89,7 +89,7 @@
 <a class="viewcode-back" href="../../../API/generated/emc2.simulator.main.make_simulated_data.html#emc2.simulator.main.make_simulated_data">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_simulated_data</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">instrument</span><span class="p">,</span> <span class="n">N_columns</span><span class="p">,</span> <span class="n">do_classify</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">unstack_dims</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                         <span class="n">skip_subcol_gen</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">finalize_fields</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">calc_spectral_width</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">subcol_gen_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">subcol_gen_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                         <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This procedure will make all of the subcolumns and simulated data for each model column.</span>
@@ -128,6 +128,14 @@
 <span class="sd">        and are the most computationally expensive. Default is True.</span>
 <span class="sd">    subcol_gen_only: bool</span>
 <span class="sd">        If True, only returns mass and number distributed among subcolumns and skips moment calculations</span>
+<span class="sd">    seed: int or None</span>
+<span class="sd">        Random seed for reproducibility of the subcolumn generator. None (default) gives</span>
+<span class="sd">        non-reproducible results with fully independent draws — best for production science</span>
+<span class="sd">        runs. With an integer seed and parallel=False, a single global seed is applied before</span>
+<span class="sd">        the timestep loop (serial-only, statistically independent timesteps). With</span>
+<span class="sd">        an integer seed and parallel=True/&#39;processes&#39;, each worker seeds with seed+tt</span>
+<span class="sd">        (parallel-safe, with a weak cross-timestep correlation). See the seeding note in</span>
+<span class="sd">        subcolumn.py for full details.</span>
 <span class="sd">    Additional keyword arguments are passed into :func:`emc2.simulator.calc_lidar_moments` or</span>
 <span class="sd">    :func:`emc2.simulator.calc_radar_moments`</span>
 
@@ -185,7 +193,8 @@
 
         <span class="c1"># Subcolumn Generator</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">set_stratiform_sub_col_frac</span><span class="p">(</span>
-            <span class="n">model</span><span class="p">,</span> <span class="n">use_rad_logic</span><span class="o">=</span><span class="n">use_rad_logic</span><span class="p">,</span> <span class="n">N_columns</span><span class="o">=</span><span class="n">N_columns</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="n">chunk</span><span class="p">)</span>
+            <span class="n">model</span><span class="p">,</span> <span class="n">use_rad_logic</span><span class="o">=</span><span class="n">use_rad_logic</span><span class="p">,</span> <span class="n">N_columns</span><span class="o">=</span><span class="n">N_columns</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="n">chunk</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
 
         <span class="c1"># Build precip_types excluding cloud-only classes</span>
         <span class="n">precip_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">hydrometeor_classes</span> <span class="k">if</span> <span class="n">h</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;cl&quot;</span><span class="p">,</span> <span class="s2">&quot;ci&quot;</span><span class="p">}]</span>
@@ -195,10 +204,11 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">is_conv</span><span class="p">:</span>
                 <span class="n">model</span> <span class="o">=</span> <span class="n">set_precip_sub_col_frac</span><span class="p">(</span>
                     <span class="n">model</span><span class="p">,</span> <span class="n">is_conv</span><span class="o">=</span><span class="n">is_conv</span><span class="p">,</span> <span class="n">use_rad_logic</span><span class="o">=</span><span class="n">use_rad_logic</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="n">chunk</span><span class="p">,</span>
-                    <span class="n">precip_types</span><span class="o">=</span><span class="n">precip_types</span><span class="p">)</span>
+                    <span class="n">precip_types</span><span class="o">=</span><span class="n">precip_types</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">model</span> <span class="o">=</span> <span class="n">set_precip_sub_col_frac</span><span class="p">(</span>
-                    <span class="n">model</span><span class="p">,</span> <span class="n">is_conv</span><span class="o">=</span><span class="n">is_conv</span><span class="p">,</span> <span class="n">use_rad_logic</span><span class="o">=</span><span class="n">use_rad_logic</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="n">chunk</span><span class="p">)</span>
+                    <span class="n">model</span><span class="p">,</span> <span class="n">is_conv</span><span class="o">=</span><span class="n">is_conv</span><span class="p">,</span> <span class="n">use_rad_logic</span><span class="o">=</span><span class="n">use_rad_logic</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="n">chunk</span><span class="p">,</span>
+                    <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
 
         <span class="c1"># Distribute q and N among subcolumns for each hydrometeor type and convective state</span>
         <span class="n">is_conv_list</span> <span class="o">=</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="k">if</span> <span class="n">process_conv</span> <span class="k">else</span> <span class="p">(</span><span class="kc">False</span><span class="p">,)</span>
@@ -211,7 +221,8 @@
                     <span class="n">qc_flag</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="n">model</span> <span class="o">=</span> <span class="n">set_q_n</span><span class="p">(</span>
                     <span class="n">model</span><span class="p">,</span> <span class="n">hyd_type</span><span class="p">,</span> <span class="n">is_conv</span><span class="o">=</span><span class="n">is_conv</span><span class="p">,</span>
-                    <span class="n">qc_flag</span><span class="o">=</span><span class="n">qc_flag</span><span class="p">,</span> <span class="n">use_rad_logic</span><span class="o">=</span><span class="n">use_rad_logic</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="n">chunk</span><span class="p">)</span>
+                    <span class="n">qc_flag</span><span class="o">=</span><span class="n">qc_flag</span><span class="p">,</span> <span class="n">use_rad_logic</span><span class="o">=</span><span class="n">use_rad_logic</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="n">chunk</span><span class="p">,</span>
+                    <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
 
     <span class="c1"># Skip moment calculations and return only subcolumn-distributed q and N, else continue to simulator</span>
     <span class="k">if</span> <span class="n">subcol_gen_only</span><span class="p">:</span>
