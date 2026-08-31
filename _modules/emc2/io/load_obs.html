@@ -79,14 +79,14 @@
 <span></span><span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">act.io.arm</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_arm_netcdf</span> <span class="k">as</span> <span class="n">read_netcdf</span>
 <span class="k">except</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using act-atmos v1.5.3 or earlier. Please update to v2.0.0 or newer&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Using act-atmos v1.5.3 or earlier. Please update to v2.0.0 or newer'</span><span class="p">)</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">act.io.armfiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_netcdf</span>
 
 
 <div class="viewcode-block" id="load_arm_file">
 <a class="viewcode-back" href="../../../API/generated/emc2.io.load_arm_file.html#emc2.io.load_arm_file">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">load_arm_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Loads an ARM-compliant netCDF file.</span>
 
 <span class="sd">    Parameters</span>
@@ -100,7 +100,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    ds: ACT dataset</span>
 <span class="sd">        The xarray dataset containing the file data.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">return</span> <span class="n">read_netcdf</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 

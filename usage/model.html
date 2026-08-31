@@ -98,7 +98,7 @@ file in order to obtain the required information. In order to define your
 <a class="reference internal" href="../API/generated/emc2.core.Model.html#emc2.core.Model" title="emc2.core.Model"><code class="xref py py-mod docutils literal notranslate"><span class="pre">emc2.core.Model</span></code></a> object, it is highly recommended to use class inheritance. For example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ class ModelE(Model):
 $    def __init__(self, file_path):
-$        &quot;&quot;&quot;
+$        """
 $        This loads a ModelE simulation with all of the necessary
 $        parameters for EMC^2 to run.
 $
@@ -106,7 +106,7 @@ $        Parameters
 $        ----------
 $        file_path: str
 $            Path to a ModelE simulation.
-$        &quot;&quot;&quot;
+$        """
 </pre></div>
 </div>
 <p>In particular, EMC^2 will require information about the mixing ratio and
@@ -119,34 +119,34 @@ in order to specify the fields that EMC^2 needs to look for, certain entries
 whose keys correspond to the names of these four precipitation species must
 be specified:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$   # Names of mixing ratios of species
-$   self.q_names = {&#39;cl&#39;: &#39;qcl&#39;, &#39;ci&#39;: &#39;qci&#39;, &#39;pl&#39;: &#39;qpl&#39;, &#39;pi&#39;: &#39;qpi&#39;}
+$   self.q_names = {'cl': 'qcl', 'ci': 'qci', 'pl': 'qpl', 'pi': 'qpi'}
 $   # Number concentration of each species
-$   self.N_field = {&#39;cl&#39;: &#39;ncl&#39;, &#39;ci&#39;: &#39;nci&#39;, &#39;pl&#39;: &#39;npl&#39;, &#39;pi&#39;: &#39;npi&#39;}
+$   self.N_field = {'cl': 'ncl', 'ci': 'nci', 'pl': 'npl', 'pi': 'npi'}
 $   # Convective fraction
-$   self.conv_frac_names = {&#39;cl&#39;: &#39;cldmccl&#39;, &#39;ci&#39;: &#39;cldmcci&#39;, &#39;pl&#39;: &#39;cldmcpl&#39;, &#39;pi&#39;: &#39;cldmcpi&#39;}
+$   self.conv_frac_names = {'cl': 'cldmccl', 'ci': 'cldmcci', 'pl': 'cldmcpl', 'pi': 'cldmcpi'}
 $   # Stratiform fraction
-$   self.strat_frac_names = {&#39;cl&#39;: &#39;cldsscl&#39;, &#39;ci&#39;: &#39;cldssci&#39;, &#39;pl&#39;: &#39;cldsspl&#39;, &#39;pi&#39;: &#39;cldsspi&#39;}
+$   self.strat_frac_names = {'cl': 'cldsscl', 'ci': 'cldssci', 'pl': 'cldsspl', 'pi': 'cldsspi'}
 $   # Effective radius
-$   self.re_fields = {&#39;cl&#39;: &#39;re_mccl&#39;, &#39;ci&#39;: &#39;re_mcci&#39;, &#39;pi&#39;: &#39;re_mcpi&#39;, &#39;pl&#39;: &#39;re_mcpl&#39;}
+$   self.re_fields = {'cl': 're_mccl', 'ci': 're_mcci', 'pi': 're_mcpi', 'pl': 're_mcpl'}
 $   # Convective mixing ratio
-$   self.q_names_convective = {&#39;cl&#39;: &#39;QCLmc&#39;, &#39;ci&#39;: &#39;QCImc&#39;, &#39;pl&#39;: &#39;QPLmc&#39;, &#39;pi&#39;: &#39;QPImc&#39;}
+$   self.q_names_convective = {'cl': 'QCLmc', 'ci': 'QCImc', 'pl': 'QPLmc', 'pi': 'QPImc'}
 $   # Stratiform mixing ratio
-$   self.q_names_stratiform = {&#39;cl&#39;: &#39;qcl&#39;, &#39;ci&#39;: &#39;qci&#39;, &#39;pl&#39;: &#39;qpl&#39;, &#39;pi&#39;: &#39;qpi&#39;}
+$   self.q_names_stratiform = {'cl': 'qcl', 'ci': 'qci', 'pl': 'qpl', 'pi': 'qpi'}
 </pre></div>
 </div>
 <p>In addition, other fields must also be specified:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$   # Water vapor mixing ratio
-$   self.q_field = &quot;q&quot;
+$   self.q_field = "q"
 $   # Pressure
-$   self.p_field = &quot;p_3d&quot;
+$   self.p_field = "p_3d"
 $   # Height
-$   self.z_field = &quot;z&quot;
+$   self.z_field = "z"
 $   # Temperature
-$   self.T_field = &quot;t&quot;
+$   self.T_field = "t"
 $   # Name of height dimension
-$   self.height_dim = &quot;plm&quot;
+$   self.height_dim = "plm"
 $   # Name of time dimension
-$   self.time_dim = &quot;time&quot;
+$   self.time_dim = "time"
 </pre></div>
 </div>
 <p>What if your model does not produce output for all 4 species, as is common
@@ -178,26 +178,26 @@ best comparison. In order to adjust the constants that are used in the various
 routines in EMC^2, you would have to fill in these dictionaries for each
 hydrometeor species:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$   # Bulk density
-$   self.Rho_hyd = {&#39;cl&#39;: 1000. * ureg.kg / (ureg.m**3),
-$                   &#39;ci&#39;: 500. * ureg.kg / (ureg.m**3),
-$                   &#39;pl&#39;: 1000. * ureg.kg / (ureg.m**3),
-$                   &#39;pi&#39;: 250. * ureg.kg / (ureg.m**3)}
+$   self.Rho_hyd = {'cl': 1000. * ureg.kg / (ureg.m**3),
+$                   'ci': 500. * ureg.kg / (ureg.m**3),
+$                   'pl': 1000. * ureg.kg / (ureg.m**3),
+$                   'pi': 250. * ureg.kg / (ureg.m**3)}
 $   # Lidar ratio
-$   self.lidar_ratio = {&#39;cl&#39;: 18. * ureg.dimensionless,
-$                       &#39;ci&#39;: 24. * ureg.dimensionless,
-$                       &#39;pl&#39;: 5.5 * ureg.dimensionless,
-$                       &#39;pi&#39;: 24.0 * ureg.dimensionless}
+$   self.lidar_ratio = {'cl': 18. * ureg.dimensionless,
+$                       'ci': 24. * ureg.dimensionless,
+$                       'pl': 5.5 * ureg.dimensionless,
+$                       'pi': 24.0 * ureg.dimensionless}
 $   # Lidar LDR per hydrometeor mass content
-$   self.LDR_per_hyd = {&#39;cl&#39;: 0.03 * 1 / (ureg.kg / (ureg.m**3)),
-$                       &#39;ci&#39;: 0.35 * 1 / (ureg.kg / (ureg.m**3)),
-$                       &#39;pl&#39;: 0.1 * 1 / (ureg.kg / (ureg.m**3)),
-$                       &#39;pi&#39;: 0.40 * 1 / (ureg.kg / (ureg.m**3))}
+$   self.LDR_per_hyd = {'cl': 0.03 * 1 / (ureg.kg / (ureg.m**3)),
+$                       'ci': 0.35 * 1 / (ureg.kg / (ureg.m**3)),
+$                       'pl': 0.1 * 1 / (ureg.kg / (ureg.m**3)),
+$                       'pi': 0.40 * 1 / (ureg.kg / (ureg.m**3))}
 $   # a, b in V = aD^b
-$   self.vel_param_a = {&#39;cl&#39;: 3e-7, &#39;ci&#39;: 700., &#39;pl&#39;: 841.997, &#39;pi&#39;: 11.72}
-$   self.vel_param_b = {&#39;cl&#39;: 2. * ureg.dimensionless,
-$                       &#39;ci&#39;: 1. * ureg.dimensionless,
-$                       &#39;pl&#39;: 0.8 * ureg.dimensionless,
-$                       &#39;pi&#39;: 0.41 * ureg.dimensionless}
+$   self.vel_param_a = {'cl': 3e-7, 'ci': 700., 'pl': 841.997, 'pi': 11.72}
+$   self.vel_param_b = {'cl': 2. * ureg.dimensionless,
+$                       'ci': 1. * ureg.dimensionless,
+$                       'pl': 0.8 * ureg.dimensionless,
+$                       'pi': 0.41 * ureg.dimensionless}
 $   super()._add_vel_units()
 </pre></div>
 </div>

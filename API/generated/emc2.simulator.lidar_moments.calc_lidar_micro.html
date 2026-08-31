@@ -151,7 +151,8 @@ This parameter is set to <cite>False</cite> if <cite>mcphys_scheme == P3</cite> 
 which also affects mu, etc. and therefore the bulk LUT behavior in a similar manner to how the P3
 LUTs are integrated into EMC².</p>
 </dd>
-<dt><strong>parallel: bool</strong></dt><dd><p>If True, use parallelism in calculating lidar parameters.</p>
+<dt><strong>parallel: bool or str</strong></dt><dd><p>If True or ‘dask’, use Dask bag parallelism with task graph scheduling. If ‘processes’, use
+ProcessPoolExecutor for single-node multiprocessing with progress bar. If False, compute serially.</p>
 </dd>
 <dt><strong>chunk: int or None</strong></dt><dd><p>The number of entries to process in one parallel loop. None will send all of
 the entries to the Dask worker queue at once. Sometimes, Dask will freeze if

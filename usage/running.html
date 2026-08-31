@@ -863,7 +863,7 @@ model generated subcolumn.</p>
 <p><code class="code docutils literal notranslate"><span class="pre">model.ds</span></code> is a standard xarray dataset that includes all of xarray’s plotting capabilities. Therefore,
 you can plot any of these parameters for a given subcolumn simply by doing:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ model_display = act.plotting.TimeSeriesDisplay(my_model.ds.sel(subcolumn=0), figsize=(15,5))
-$ model_display.plot(&#39;sub_col_Ze_cl_strat&#39;, cmap=&#39;act_HomeyerRainbow&#39;, vmin=-30, vmax=-15)
+$ model_display.plot('sub_col_Ze_cl_strat', cmap='act_HomeyerRainbow', vmin=-30, vmax=-15)
 $ model_display.axes[0].invert_yaxis()
 </pre></div>
 </div>
@@ -871,7 +871,7 @@ $ model_display.axes[0].invert_yaxis()
 <p>If we want to compare against observations, you can harness the power of the <a class="reference external" href="https://arm-doe.github.io/ACT">Atmospheric Community Toolkit</a> to make time series displays of the outputs. For example, to plot the
 reflectivity from KAZR, simply do:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ display = act.plotting.TimeSeriesDisplay(KAZR.ds, figsize=(15,5))
-$ display.plot(&#39;reflectivity_copol&#39;, cmap=&#39;act_HomeyerRainbow&#39;, subplot_index=(0, ))
+$ display.plot('reflectivity_copol', cmap='act_HomeyerRainbow', subplot_index=(0, ))
 </pre></div>
 </div>
 <img alt="../_images/Kazr_refl.png" src="../_images/Kazr_refl.png" />

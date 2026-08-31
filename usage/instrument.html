@@ -99,9 +99,9 @@ EMC^2 to use. For example, the object for the High Spectral Resolution Lidar
 is created as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ class HSRL(Instrument):
 $     def __init__(self):
-$         &quot;&quot;&quot;
+$         """
 $         This stores the information for the High Resolution Spectral Lidar.
-$         &quot;&quot;&quot;
+$         """
 </pre></div>
 </div>
 <p>Make sure all of the variables are initalized and the proper wavelength is
@@ -110,11 +110,11 @@ entered:</p>
 </pre></div>
 </div>
 <p>Define whether your instrument is a lidar or a radar:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$         self.instrument_class = &quot;lidar&quot;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$         self.instrument_class = "lidar"
 </pre></div>
 </div>
 <p>Name your instrument:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$         self.instrument_str = &quot;HSRL&quot;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$         self.instrument_str = "HSRL"
 </pre></div>
 </div>
 <p>If it’s a lidar, we’ll tell EMC^2 to consider the signal to be extinct
@@ -145,11 +145,11 @@ $         self.tau_md = np.nan
 </div>
 <p>In addition, the mie tables for each hydrometeor class must be specified:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$         # Load mie tables
-$         data_path = os.path.join(os.path.dirname(__file__), &#39;mie_tables&#39;)
-$         self.mie_table[&quot;cl&quot;] = load_mie_file(data_path + &quot;/MieHSRL_liq.dat&quot;)
-$         self.mie_table[&quot;pl&quot;] = load_mie_file(data_path + &quot;/MieHSRL_liq.dat&quot;)
-$         self.mie_table[&quot;ci&quot;] = load_mie_file(data_path + &quot;/MieHSRL_ci.dat&quot;)
-$         self.mie_table[&quot;pi&quot;] = load_mie_file(data_path + &quot;/MieHSRL_pi.dat&quot;)
+$         data_path = os.path.join(os.path.dirname(__file__), 'mie_tables')
+$         self.mie_table["cl"] = load_mie_file(data_path + "/MieHSRL_liq.dat")
+$         self.mie_table["pl"] = load_mie_file(data_path + "/MieHSRL_liq.dat")
+$         self.mie_table["ci"] = load_mie_file(data_path + "/MieHSRL_ci.dat")
+$         self.mie_table["pi"] = load_mie_file(data_path + "/MieHSRL_pi.dat")
 </pre></div>
 </div>
 </section>
