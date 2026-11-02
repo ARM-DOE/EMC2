@@ -19,6 +19,7 @@ jobs:
   # This job installs dependencies, builds the website, and uploads it as an artifact
   build-site:
     runs-on: ubuntu-latest
+    if: github.repository == 'ARM-DOE/EMC2'
     defaults:
       run:
         shell: bash -l {0}
@@ -58,7 +59,7 @@ jobs:
   deploy-site:
     needs: build-site
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.repository == 'ARM-DOE/EMC2' && github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
       pages: write
       id-token: write
